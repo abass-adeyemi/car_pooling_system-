@@ -5,12 +5,18 @@ const bodyParser = require('body-parser');
 const displayRoutes = require('express-routemap');
 const mySqlConnection = require('./configuration/mysql');
 const { uuid4 } = require('uuidv4');
+const ridersRoutes = require('./routes/rider.routes');
+const paymentRoutes = require('./routes/payment.routes');
 
-// const AppRoutes = require('./routes');
 const port = process.env.PORT;
 
 // parse application/json
 app.use(bodyParser.json());
+
+// route a
+
+app.use(ridersRoutes);
+app.use(paymentRoutes);
 
 app.listen(port, () => {
 	console.log(`i am listening on ${port}`);
@@ -19,7 +25,7 @@ app.listen(port, () => {
 
 mySqlConnection.connect((err) => {
 	if (err) throw err.stack;
-	// connected!
+
 	console.log('successfully connected: ', mySqlConnection.threadId);
 });
 
