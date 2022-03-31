@@ -4,18 +4,28 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js",
+    "dev": "nodemon index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.26.1",
+    "bcrypt": "^5.0.1",
     "body-parser": "^1.19.2",
     "dotenv": "^16.0.0",
     "express": "^4.17.3",
+    "express-jwt": "^6.1.1",
+    "express-routemap": "^1.6.0",
+    "express-routes-mapper": "^1.1.0",
+    "joi": "^17.6.0",
+    "joi-phone-number": "^5.1.1",
     "mysql2": "^2.3.3",
+    "nanoid": "^3.3.1",
     "nodemon": "^2.0.15",
     "save": "^2.4.0",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "uuidv4": "^6.2.12"
   }
 }
