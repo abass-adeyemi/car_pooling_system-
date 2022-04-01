@@ -6,6 +6,7 @@ const riderModel = require('../models/riders.model');
 const emailServices = require('../services/emailServices');
 const bcrypt = require('bcrypt');
 const res = require('express/lib/response');
+const { send } = require('express/lib/response');
 const JoiPhone = Joi.extend(require('joi-phone-number'));
 const generateOTP = () => {
 	let otp = Math.floor(Math.random() * 10000);
@@ -138,6 +139,32 @@ const createRidersProfile = async (req, res) => {
 		});
 };
 
+const getRider = async (req, res) => {
+	const { email } = req.params;
+	console.log(email);
+	return riderModel
+		.getRidersDetailsByPhoneOrEmail(email)
+		.then((getRiderDetails) => {
+			console.log(getRiderDetails);
+			if (getRiderDetails == '') {
+				throw new Error(msgClass.CustomerNotFound);
+			}
+			delete getRiderDetails[0].password;
+			delete getRiderDetails[0]['S/N'];
+
+			res.status(200).send({
+				status: true,
+				message: msgClass.CustomerDetailsFetched,
+				data: getRiderDetails,
+			});
+		})
+		.catch((err) => {
+			res.status(400).send({
+				status: false,
+				message: err.message || 'something went wrong',
+			});
+		});
+};
 const verifyOTP = async (req, res) => {
 	const { email, OTP } = req.params;
 	console.log(email);
@@ -193,12 +220,41 @@ const verifyOTP = async (req, res) => {
 		});
 };
 
-const resendOTP = async (req, res) => {};
+const resendOTP = async (req, res) => {
+	const { email } = req.params;
+	const OTP = generateOTP();
+	console.log(`otp`, OTP);
+	riderModel
+		.getRidersDetailsByPhoneOrEmail(email)
+		.then((getRidersResp) => {
+			console.log(getRidersResp);
+			if (getRidersResp == '') {
+				throw new Error(msgClass.CustomerNotFound);
+			}
+			riderModel.deleteOtpByCustomerID(getRidersResp[0].customer_id);
+			riderModel.insertOTP(
+				getRidersResp[0].email,
+				getRidersResp[0].phone,
+				getRidersResp[0].customer_id,
+				OTP
+			);
+		})
+
+		.then((otpInsertResp) => {
+			console.log(otpInsertResp);
+			if (otpInsertResp == false) {
+				throw new Error('unable to insert otp');
+			}
+			// const getRiderDetails = riderModel.getRidersDetailsByPhoneOrEmail;
+			// console.log(getRiderDetails);
+		});
+};
 //**************************************** */
 
 module.exports = {
 	createRidersProfile,
 	verifyOTP,
 	resendOTP,
+	getRider,
 	// ridersLogin,
 };

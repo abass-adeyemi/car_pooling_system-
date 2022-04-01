@@ -118,7 +118,22 @@ const deleteOTP = async (details, otp) => {
 		);
 	});
 };
-
+const deleteOtpByCustomerID = async (customerID) => {
+	return new Promise((resolve, reject) => {
+		riderSQL.query(
+			{
+				sql: `delete  from _OTP where customer_id=?`,
+				values: [customerID],
+			},
+			(err, results, fields) => {
+				if (err) {
+					reject(err);
+				}
+				resolve(results);
+			}
+		);
+	});
+};
 const isOtpVerified = async (details) => {
 	return new Promise((resolve, reject) => {
 		riderSQL.query(
@@ -143,5 +158,6 @@ module.exports = {
 	insertOTP,
 	getOTP,
 	deleteOTP,
+	deleteOtpByCustomerID,
 	isOtpVerified,
 };
