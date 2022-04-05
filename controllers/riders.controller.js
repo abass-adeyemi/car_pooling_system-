@@ -140,12 +140,14 @@ const createRidersProfile = async (req, res) => {
 };
 
 const getRider = async (req, res) => {
-	const { email } = req.params;
-	console.log(email);
+	console.log('req.body=>', req.body);
+	const { email } = req.body;
+	const idy = req.body.fakeID;
+
 	return riderModel
 		.getRidersDetailsByPhoneOrEmail(email)
 		.then((getRiderDetails) => {
-			console.log(getRiderDetails);
+			console.log('getRiderDetails=>', getRiderDetails);
 			if (getRiderDetails == '') {
 				throw new Error(msgClass.CustomerNotFound);
 			}
@@ -164,6 +166,13 @@ const getRider = async (req, res) => {
 				message: err.message || 'something went wrong',
 			});
 		});
+};
+const updateRider = async (req, res) => {
+	// riderModel.updateRider(email);
+	res.status(200).send({
+		status: true,
+		message: 'updated suceesfully',
+	});
 };
 const verifyOTP = async (req, res) => {
 	const { email, OTP } = req.params;
@@ -238,15 +247,34 @@ const resendOTP = async (req, res) => {
 				getRidersResp[0].customer_id,
 				OTP
 			);
+			// send otp by email requires the ffg fullname=username= and otp=otp generated
+			const userFullName = `${getRidersResp[0].firstname} ${getRidersResp[0].surname}`;
+			const dataReplacement = {
+				userFullName: userFullName,
+				mail: email,
+				otp: OTP,
+			};
+			//  the format for the readfilesendmail is (email of the user created, Header message, dataReplacement, the html filename)
+			emailServices.readFileAndSendEmail(
+				email,
+				'OTP VERIFICATION',
+				dataReplacement,
+				'sendOTP'
+			);
+			res.status(200).send({
+				status: true,
+				message: msgClass.OtpResentSentSuccessfully,
+				data: [],
+			});
 		})
 
-		.then((otpInsertResp) => {
-			console.log(otpInsertResp);
-			if (otpInsertResp == false) {
-				throw new Error('unable to insert otp');
-			}
-			// const getRiderDetails = riderModel.getRidersDetailsByPhoneOrEmail;
-			// console.log(getRiderDetails);
+		.catch((err) => {
+			console.log('err =>', JSON.stringify(err.message));
+
+			res.status(400).send({
+				status: false,
+				message: err.message || 'something went wrong',
+			});
 		});
 };
 //**************************************** */
@@ -256,5 +284,6 @@ module.exports = {
 	verifyOTP,
 	resendOTP,
 	getRider,
+	updateRider,
 	// ridersLogin,
 };

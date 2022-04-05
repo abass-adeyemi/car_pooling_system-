@@ -34,6 +34,22 @@ const createNewRider = async (
 		);
 	});
 };
+const updateRIder = async (email) => {
+	return new promise((resolve, reject) => {
+		riderSQL.query(
+			{
+				sql: `update _riders set phone = ?, surname= ? , firstname= ?, gender=? where email =?`,
+				values: [phone, firstname, surname, gender, email],
+			},
+			(err, results, fields) => {
+				if (err) {
+					reject(err);
+				}
+				resolve(results);
+			}
+		);
+	});
+};
 const getRidersDetailsByPhoneOrEmail = async (details) => {
 	return new Promise((resolve, reject) => {
 		riderSQL.query(
@@ -153,6 +169,7 @@ const isOtpVerified = async (details) => {
 
 module.exports = {
 	createNewRider,
+	updateRIder,
 	getRidersDetailsByPhoneOrEmail,
 	checkIfRiderExist,
 	insertOTP,

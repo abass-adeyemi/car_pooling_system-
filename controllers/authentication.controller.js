@@ -44,14 +44,14 @@ const ridersLogin = async (req, res) => {
 						console.log('err', err);
 						throw new Error('Something went wrong');
 					}
-
-					res
-						.setHeader('token', token)
-						.status(200)
-						.send({
-							status: true,
-							message: msgClass.LoginSuccessful || 'Successfully logged in ',
-						});
+					console.log('token login=>', token);
+					res.setHeader('token', token);
+					// res.setHeader('token', token);
+					console.log('token login222=>', token);
+					res.status(200).send({
+						status: true,
+						message: msgClass.LoginSuccessful || 'Successfully logged in ',
+					});
 				}
 			);
 		})
