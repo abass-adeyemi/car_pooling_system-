@@ -87,7 +87,7 @@ const createRidersProfile = async (req, res) => {
 		})
 		.then((hashMyPasswordResponse) => {
 			if (typeof hashMyPasswordResponse != 'object') {
-				throw new Error('internal server from me');
+				throw new Error('internal server from us');
 			}
 			console.log('hashMyPasswordResponse');
 
@@ -106,6 +106,11 @@ const createRidersProfile = async (req, res) => {
 			return riderModel.insertOTP(email, phone, customer_id, otp);
 		})
 		.then((sendOtpResp) => {
+			if (sendOtpResp == undefined || null) {
+				throw new Error(
+					'this is on us , something went wrong ... try again later'
+				);
+			}
 			// console.log('message from the then block =>', responseOfInsertOTP);
 
 			// send otp by email requires the ffg fullname=username= and otp=otp generated
@@ -285,5 +290,6 @@ module.exports = {
 	resendOTP,
 	getRider,
 	updateRider,
+	// hashMyPassword,
 	// ridersLogin,
 };
