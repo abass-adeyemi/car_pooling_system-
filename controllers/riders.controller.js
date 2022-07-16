@@ -6,6 +6,7 @@ const riderModel = require('../models/riders.model');
 const emailServices = require('../services/emailServices');
 const bcrypt = require('bcrypt');
 const res = require('express/lib/response');
+const { send } = require('express/lib/response');
 const JoiPhone = Joi.extend(require('joi-phone-number'));
 const generateOTP = () => {
 	let otp = Math.floor(Math.random() * 10000);
@@ -86,7 +87,7 @@ const createRidersProfile = async (req, res) => {
 		})
 		.then((hashMyPasswordResponse) => {
 			if (typeof hashMyPasswordResponse != 'object') {
-				throw new Error('internal server from me');
+				throw new Error('internal server from us');
 			}
 			console.log('hashMyPasswordResponse');
 
@@ -105,6 +106,11 @@ const createRidersProfile = async (req, res) => {
 			return riderModel.insertOTP(email, phone, customer_id, otp);
 		})
 		.then((sendOtpResp) => {
+			if (sendOtpResp == undefined || null) {
+				throw new Error(
+					'this is on us , something went wrong ... try again later'
+				);
+			}
 			// console.log('message from the then block =>', responseOfInsertOTP);
 
 			// send otp by email requires the ffg fullname=username= and otp=otp generated
@@ -138,6 +144,41 @@ const createRidersProfile = async (req, res) => {
 		});
 };
 
+const getRider = async (req, res) => {
+	console.log('req.body=>', req.body);
+	const { email } = req.body;
+	const idy = req.body.fakeID;
+
+	return riderModel
+		.getRidersDetailsByPhoneOrEmail(email)
+		.then((getRiderDetails) => {
+			console.log('getRiderDetails=>', getRiderDetails);
+			if (getRiderDetails == '') {
+				throw new Error(msgClass.CustomerNotFound);
+			}
+			delete getRiderDetails[0].password;
+			delete getRiderDetails[0]['S/N'];
+
+			res.status(200).send({
+				status: true,
+				message: msgClass.CustomerDetailsFetched,
+				data: getRiderDetails,
+			});
+		})
+		.catch((err) => {
+			res.status(400).send({
+				status: false,
+				message: err.message || 'something went wrong',
+			});
+		});
+};
+const updateRider = async (req, res) => {
+	// riderModel.updateRider(email);
+	res.status(200).send({
+		status: true,
+		message: 'updated suceesfully',
+	});
+};
 const verifyOTP = async (req, res) => {
 	const { email, OTP } = req.params;
 	console.log(email);
@@ -193,12 +234,62 @@ const verifyOTP = async (req, res) => {
 		});
 };
 
-const resendOTP = async (req, res) => {};
+const resendOTP = async (req, res) => {
+	const { email } = req.params;
+	const OTP = generateOTP();
+	console.log(`otp`, OTP);
+	riderModel
+		.getRidersDetailsByPhoneOrEmail(email)
+		.then((getRidersResp) => {
+			console.log(getRidersResp);
+			if (getRidersResp == '') {
+				throw new Error(msgClass.CustomerNotFound);
+			}
+			riderModel.deleteOtpByCustomerID(getRidersResp[0].customer_id);
+			riderModel.insertOTP(
+				getRidersResp[0].email,
+				getRidersResp[0].phone,
+				getRidersResp[0].customer_id,
+				OTP
+			);
+			// send otp by email requires the ffg fullname=username= and otp=otp generated
+			const userFullName = `${getRidersResp[0].firstname} ${getRidersResp[0].surname}`;
+			const dataReplacement = {
+				userFullName: userFullName,
+				mail: email,
+				otp: OTP,
+			};
+			//  the format for the readfilesendmail is (email of the user created, Header message, dataReplacement, the html filename)
+			emailServices.readFileAndSendEmail(
+				email,
+				'OTP VERIFICATION',
+				dataReplacement,
+				'sendOTP'
+			);
+			res.status(200).send({
+				status: true,
+				message: msgClass.OtpResentSentSuccessfully,
+				data: [],
+			});
+		})
+
+		.catch((err) => {
+			console.log('err =>', JSON.stringify(err.message));
+
+			res.status(400).send({
+				status: false,
+				message: err.message || 'something went wrong',
+			});
+		});
+};
 //**************************************** */
 
 module.exports = {
 	createRidersProfile,
 	verifyOTP,
 	resendOTP,
+	getRider,
+	updateRider,
+	// hashMyPassword,
 	// ridersLogin,
 };

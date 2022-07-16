@@ -34,6 +34,22 @@ const createNewRider = async (
 		);
 	});
 };
+const updateRIder = async (email) => {
+	return new promise((resolve, reject) => {
+		riderSQL.query(
+			{
+				sql: `update _riders set phone = ?, surname= ? , firstname= ?, gender=? where email =?`,
+				values: [phone, firstname, surname, gender, email],
+			},
+			(err, results, fields) => {
+				if (err) {
+					reject(err);
+				}
+				resolve(results);
+			}
+		);
+	});
+};
 const getRidersDetailsByPhoneOrEmail = async (details) => {
 	return new Promise((resolve, reject) => {
 		riderSQL.query(
@@ -102,6 +118,23 @@ const insertOTP = async (email, phone, customer_id, otp) => {
 	});
 };
 
+const forgetPasswordModel = async (email, phone, hash, customer_id) => {
+	return new Promise((resolve, reject) => {
+		riderSQL.query(
+			{
+				sql: `insert into _forget_password(customer_id,email, phone, hash) values(?,?,?,?)`,
+				values: [email, phone, hash, customer_id],
+			},
+			(err, result, fields) => {
+				if (err) {
+					reject(err);
+				}
+				resolve(result);
+			}
+		);
+	});
+};
+
 const deleteOTP = async (details, otp) => {
 	return new Promise((resolve, reject) => {
 		riderSQL.query(
@@ -118,7 +151,22 @@ const deleteOTP = async (details, otp) => {
 		);
 	});
 };
-
+const deleteOtpByCustomerID = async (customerID) => {
+	return new Promise((resolve, reject) => {
+		riderSQL.query(
+			{
+				sql: `delete  from _OTP where customer_id=?`,
+				values: [customerID],
+			},
+			(err, results, fields) => {
+				if (err) {
+					reject(err);
+				}
+				resolve(results);
+			}
+		);
+	});
+};
 const isOtpVerified = async (details) => {
 	return new Promise((resolve, reject) => {
 		riderSQL.query(
@@ -135,13 +183,68 @@ const isOtpVerified = async (details) => {
 		);
 	});
 };
+const validateHash = async (hash) => {
+	return new Promise((resolve, reject) => {
+		riderSQL.query(
+			{
+				//select * from  _riders where email=? or phone=?
+				sql: `select * from  _forget_password where hash=?`,
+				values: [hash],
+			},
+			(err, result, fields) => {
+				if (err) {
+					reject(err);
+				}
+				resolve(result);
+			}
+		);
+	});
+};
 
+const deleteHashByCustormerID = async (customer_id) => {
+	return new Promise((resolve, reject) => {
+		riderSQL.query(
+			{
+				sql: `delete from _forget_password where customer_id=?`,
+				values: [customer_id],
+			},
+			(err, result, fields) => {
+				if (err) {
+					reject(err);
+				}
+				resolve(result);
+			}
+		);
+	});
+};
+const updatePassword = async (password, customer_id) => {
+	return new Promise((resolve, reject) => {
+		riderSQL.query(
+			{
+				sql: `update _riders set password=? where customer_id=?`,
+				values: [password, customer_id],
+			},
+			(err, result, fields) => {
+				if (err) {
+					reject(err);
+				}
+				resolve(result);
+			}
+		);
+	});
+};
 module.exports = {
 	createNewRider,
+	updateRIder,
 	getRidersDetailsByPhoneOrEmail,
 	checkIfRiderExist,
 	insertOTP,
 	getOTP,
 	deleteOTP,
+	deleteOtpByCustomerID,
 	isOtpVerified,
+	forgetPasswordModel,
+	validateHash,
+	deleteHashByCustormerID,
+	updatePassword,
 };
